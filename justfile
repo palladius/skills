@@ -29,3 +29,8 @@ compat:
 stats:
     @jq -r '.sources[] | "\(.skills_count)\t\(.tier)\t\(.id)\t\(.version // "-")"' dist/index.json | column -t
     @jq -r '"TOTAL\t\(.skills | length) skills"' dist/index.json
+
+# Serve dist/ locally on http://localhost:8787 (Ctrl-C to stop)
+serve port="8787":
+    @echo "🌍 http://localhost:{{port}}/#/?q=audio"
+    ruby -run -e httpd dist -p {{port}}

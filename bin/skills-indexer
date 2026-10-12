@@ -22,11 +22,12 @@ module Palette
   end
 end
 
-opts = {sources: "sources.yaml", out: "dist", workdir: "tmp/sources", local_root: nil, dryrun: false, verbose: false}
+opts = {sources: "sources.yaml", out: "dist", site: File.expand_path("../site", __dir__), workdir: "tmp/sources", local_root: nil, dryrun: false, verbose: false}
 parser = OptionParser.new do |o|
   o.banner = "Usage: skills-indexer [build|compat FILE_OR_URL] [options]"
   o.on("-s", "--sources FILE", "sources.yaml (default: #{opts[:sources]})") { opts[:sources] = _1 }
   o.on("-o", "--out DIR", "output dir (default: #{opts[:out]})") { opts[:out] = _1 }
+  o.on("--site DIR", "static frontend to copy into --out (default: site/; 'none' to skip)") { opts[:site] = _1 }
   o.on("--local-root DIR", "prefer DIR/<repo-name> checkouts over cloning (e.g. ~/git)") { opts[:local_root] = _1 }
   o.on("--workdir DIR", "where to shallow-clone (default: #{opts[:workdir]})") { opts[:workdir] = _1 }
   o.on("-n", "--dryrun", "resolve + scan, but write nothing") { opts[:dryrun] = true }
@@ -55,9 +56,11 @@ when "build"
   if opts[:dryrun]
     log.(Palette.paint("🧪 dryrun: would write #{skills.size} skills to #{opts[:out]}/", :yellow))
   else
-    index = SkillsIndexer::Writer.new(opts[:out]).write(sources:, skills:)
+    writer = SkillsIndexer::Writer.new(opts[:out])
+    index = writer.write(sources:, skills:)
+    writer.copy_site(opts[:site]) if opts[:site] != "none" && File.directory?(opts[:site])
     problems = SkillsIndexer::Compat.problems(JSON.parse(JSON.generate(index)))
-    log.(Palette.paint("✅ wrote #{opts[:out]}/index.json (#{skills.size} skills) + content/", :green))
+    log.(Palette.paint("✅ wrote #{opts[:out]}/index.json (#{skills.size} skills) + content/ + site", :green))
     unless problems.empty?
       problems.each { log.(Palette.paint("  ⚠️  #{_1}", :red)) }
       exit 2

@@ -26,5 +26,10 @@ module SkillsIndexer
       end
       index
     end
+
+    # Copies the static frontend (index.html, app.js, style.css…) into <out>/.
+    def copy_site(site_dir)
+      Dir.glob("*", base: site_dir).each { FileUtils.cp_r(File.join(site_dir, _1), @out) }
+    end
   end
 end

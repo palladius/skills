@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>🧭 Skills — searchable catalogue of agent skills</title>
+  <meta name="description" content="Type a word, find the SKILL.md. Aggregated from palladius and google/skills repos.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <a class="brand" href="#/">🧭 <strong>skills</strong></a>
+  <!-- The search box. Autofocused so you can land and type "audio" immediately. -->
+  <input id="q" type="search" placeholder="Type to search… (press / to focus)" autocomplete="off" autofocus>
+  <span id="count" class="count" title="matching / total"></span>
+  <a class="gh" href="https://github.com/palladius/skills" title="Source on GitHub">GitHub</a>
+</header>
+
+<!-- Filter chips: one per source, plus one per tier. Click to toggle. -->
+<nav id="filters" class="filters"></nav>
+
+<main>
+  <!-- The list of result cards goes here. -->
+  <section id="results" class="results" aria-live="polite"></section>
+
+  <!-- The detail pane: shown when the URL is #/s/<id>. Hidden otherwise. -->
+  <article id="detail" class="detail" hidden></article>
+</main>
+
+<footer class="foot">
+  <span id="generated"></span> ·
+  <a href="index.json">index.json</a> (google/skills-compatible) ·
+  <a href="https://github.com/palladius/skills">palladius/skills</a>
+</footer>
+
+<!-- Markdown → HTML, and a sanitizer so a SKILL.md can't inject scripts into this page. -->
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

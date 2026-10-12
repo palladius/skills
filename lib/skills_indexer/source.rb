@@ -80,7 +80,7 @@ module SkillsIndexer
     end
 
     def version = manifest["version"]
-    def display_name = manifest["displayName"] || manifest["name"] || repo_name
+    def display_name = manifest["displayName"] || manifest["name"] || github_slug || repo_name
     def gemini_extension? = dir.join("gemini-extension.json").exist?
 
     # Paths declared in .gitmodules — we skip those (v1 decision, see PLAN roast #10).
@@ -100,6 +100,9 @@ module SkillsIndexer
 
     private
 
+    # Blobless partial clone: full commit history (so `git log -- <dir>` gives real
+    # updated_at dates) but only HEAD's file contents are downloaded. `--depth 1`
+    # would be smaller but makes every skill look like it changed today.
     def clone_into(target, dryrun:, log:)
       if target.join(".git").directory?
         log.("🔄 #{id}: pulling #{target}")
@@ -107,7 +110,7 @@ module SkillsIndexer
       else
         log.("⬇️  #{id}: cloning #{url} (#{ref}) → #{target}")
         FileUtils.mkdir_p(target.dirname)
-        sh("git", "clone", "--depth", "1", "--branch", ref, "--quiet", url, target.to_s) unless dryrun
+        sh("git", "clone", "--filter=blob:none", "--single-branch", "--branch", ref, "--quiet", url, target.to_s) unless dryrun
       end
       target
     end

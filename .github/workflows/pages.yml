@@ -1,0 +1,52 @@
+# Builds the PUBLIC index (sources.yaml only) and deploys dist/ to GitHub Pages.
+# Runs on push to main, nightly (to pick up new skills upstream), and on demand.
+name: pages
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 3 * * *"   # 03:17 UTC nightly
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+      - name: Test
+        run: ruby -Ilib:test -e 'Dir["test/test_*.rb"].each { require File.expand_path(_1) }'
+      - name: Build index (shallow-clones every source under tmp/)
+        run: bin/skills-indexer build -o dist -v
+      - name: Compat check against upstream google/skills
+        run: bin/skills-indexer compat https://raw.githubusercontent.com/google/skills/main/index.json
+      - name: Summary
+        run: |
+          { echo "### 🧭 skills index"; echo; echo '| skills | tier | source | version |'; echo '|---|---|---|---|';
+            jq -r '.sources[] | "| \(.skills_count) | \(.tier) | \(.id) | \(.version // "-") |"' dist/index.json;
+            echo; echo "**Total:** $(jq '.skills|length' dist/index.json) skills"; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
