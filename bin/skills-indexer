@@ -1,0 +1,78 @@
+#!/usr/bin/env ruby
+
+=begin
+skills-indexer — build a google/skills-compatible index.json from many repos.
+
+  bin/skills-indexer build  [-s sources.yaml] [-o dist] [--local-root ~/git] [--workdir tmp/sources] [-n] [-v]
+  bin/skills-indexer compat <index.json | https://…/index.json>
+  bin/skills-indexer -h
+
+`build` is the default and is SAFE: it only writes under -o (default dist/)
+and clones under --workdir. `-n` prints what would happen without touching disk.
+=end
+
+require "optparse"
+require_relative "../lib/skills_indexer"
+
+module Palette
+  ESC = {bold: 1, dim: 2, red: 31, green: 32, yellow: 33, blue: 34, magenta: 35, cyan: 36}.freeze
+  def self.paint(text, *styles)
+    return text.to_s unless $stdout.tty?
+    "\e[#{styles.map { ESC.fetch(_1) }.join(";")}m#{text}\e[0m"
+  end
+end
+
+opts = {sources: "sources.yaml", out: "dist", workdir: "tmp/sources", local_root: nil, dryrun: false, verbose: false}
+parser = OptionParser.new do |o|
+  o.banner = "Usage: skills-indexer [build|compat FILE_OR_URL] [options]"
+  o.on("-s", "--sources FILE", "sources.yaml (default: #{opts[:sources]})") { opts[:sources] = _1 }
+  o.on("-o", "--out DIR", "output dir (default: #{opts[:out]})") { opts[:out] = _1 }
+  o.on("--local-root DIR", "prefer DIR/<repo-name> checkouts over cloning (e.g. ~/git)") { opts[:local_root] = _1 }
+  o.on("--workdir DIR", "where to shallow-clone (default: #{opts[:workdir]})") { opts[:workdir] = _1 }
+  o.on("-n", "--dryrun", "resolve + scan, but write nothing") { opts[:dryrun] = true }
+  o.on("-v", "--verbose", "chatty output") { opts[:verbose] = true }
+  o.on("-h", "--help") { puts o; exit }
+  o.on("--version") { puts SkillsIndexer::VERSION; exit }
+end
+args = parser.parse!(ARGV)
+command = args.shift || "build"
+log = ->(msg) { warn msg }
+dbg = ->(msg) { warn Palette.paint(msg, :dim) if opts[:verbose] }
+
+case command
+when "build"
+  sources = SkillsIndexer::Source.load(opts[:sources])
+  log.(Palette.paint("✨ skills-indexer #{SkillsIndexer::VERSION} — #{sources.size} sources from #{opts[:sources]}", :bold))
+  skills = sources.flat_map do |src|
+    src.resolve!(local_root: opts[:local_root], workdir: opts[:workdir], dryrun: opts[:dryrun], log:)
+    next [] if opts[:dryrun] && !src.dir&.directory?
+    found = SkillsIndexer::Scanner.new(src).skills
+    tier = Palette.paint(src.tier, {public: :green, ricc: :yellow, google: :blue}[src.tier])
+    log.("  📁 #{Palette.paint(src.id, :cyan)} [#{tier}] #{found.size} skills  #{Palette.paint(src.dir, :dim)}")
+    found.each { dbg.("     🔗 #{_1.id} #{_1.lines}L #{_1.version ? "v#{_1.version}" : ""} #{_1.updated_at}") }
+    found
+  end
+  if opts[:dryrun]
+    log.(Palette.paint("🧪 dryrun: would write #{skills.size} skills to #{opts[:out]}/", :yellow))
+  else
+    index = SkillsIndexer::Writer.new(opts[:out]).write(sources:, skills:)
+    problems = SkillsIndexer::Compat.problems(JSON.parse(JSON.generate(index)))
+    log.(Palette.paint("✅ wrote #{opts[:out]}/index.json (#{skills.size} skills) + content/", :green))
+    unless problems.empty?
+      problems.each { log.(Palette.paint("  ⚠️  #{_1}", :red)) }
+      exit 2
+    end
+  end
+when "compat"
+  target = args.shift or abort(parser.help)
+  problems = SkillsIndexer::Compat.problems(SkillsIndexer::Compat.load(target))
+  if problems.empty?
+    puts Palette.paint("✅ #{target} is google/skills-compatible", :green)
+  else
+    problems.first(20).each { puts Palette.paint("❌ #{_1}", :red) }
+    puts Palette.paint("… #{problems.size - 20} more", :dim) if problems.size > 20
+    exit 1
+  end
+else
+  abort(parser.help)
+end

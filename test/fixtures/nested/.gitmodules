@@ -1,0 +1,3 @@
+[submodule "sub"]
+	path = plugins/area/sub
+	url = https://example.com/sub

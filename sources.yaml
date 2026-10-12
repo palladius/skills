@@ -1,0 +1,21 @@
+# Public skill sources indexed by https://palladius.github.io/skills
+#
+# Every repo is scanned for **/SKILL.md (a folder is a skill iff it has one).
+# Keys: id (stable, used in permalinks) · url · tier (public|ricc|google) · ref (default main)
+# Private sources (tier ricc/google) live in a separate, never-committed sources.private.yaml.
+sources:
+  - id: palladius-custom-commands
+    url: https://github.com/palladius/gemini-cli-custom-commands
+    tier: public
+
+  - id: palladius-public-goodies
+    url: https://github.com/palladius/gemini-cli-palladius-public-goodies
+    tier: public
+
+  - id: google-skills
+    url: https://github.com/google/skills
+    tier: public
+
+  - id: gemini-skills
+    url: https://github.com/google-gemini/gemini-skills
+    tier: public
