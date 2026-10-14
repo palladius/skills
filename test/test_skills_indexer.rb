@@ -115,6 +115,14 @@ class TestSkill < Minitest::Test
     assert_equal "https://raw.githubusercontent.com/acme/nested/main/skills/cloud/gamma/SKILL.md", @gamma.entrypoint
     assert_equal "npx skills add acme/nested --skill gamma", @gamma.install
   end
+
+  def test_quality_is_explainable
+    # alpha: version ✓, scripts ✓, recent (fixture mtime = now) ✓, 10 lines ✗, short description ✗ → 3
+    assert_equal 3, @alpha.quality
+    # beta: no version, no scripts, recent ✓, 5 lines ✗, short description ✗ → 1
+    assert_equal 1, @beta.quality
+    assert_includes 0..5, @gamma.quality
+  end
 end
 
 class TestWriterAndCompat < Minitest::Test

@@ -69,11 +69,24 @@ module SkillsIndexer
       source.github? ? "npx skills add #{source.github_slug} --skill #{name}" : "agc skills install #{name} --global"
     end
 
+    # A deliberately simple, explainable 0–5 "quality" score used to rank cards.
+    # One point each for: declared version · bundled scripts · touched in the last
+    # 90 days · a real body (40–600 lines) · a useful description (60–500 chars).
+    def quality
+      [
+        !version.nil?,
+        has_scripts,
+        (Date.today - Date.parse(updated_at)).to_i <= 90,
+        (40..600).cover?(lines),
+        (60..500).cover?(description.length)
+      ].count(true)
+    end
+
     def to_h
       {
         name:, description:, entrypoint:,
         id:, title:, category:, emoji:, version:, lines:, size_bytes:, updated_at:,
-        compatibility:, has_scripts:, languages:,
+        compatibility:, has_scripts:, languages:, quality:,
         source: source.id, tier: source.tier, path: rel_path,
         upstream_url: source.blob_url(rel_path),
         content_url: "content/#{id}.md",

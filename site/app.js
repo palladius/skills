@@ -40,7 +40,12 @@ async function boot() {
   readUrl();                   // URL → state (so a shared link opens the right view)
   render();
 
-  $("#q").addEventListener("input", (e) => { state.query = e.target.value; state.cursor = -1; writeUrl(); render(); });
+  // Typing while a skill detail is open? Leave the detail: the results list must follow the search.
+  $("#q").addEventListener("input", (e) => {
+    state.query = e.target.value; state.cursor = -1;
+    if (state.detailId) { state.detailId = null; $("#detail").hidden = true; }
+    writeUrl(); render();
+  });
   window.addEventListener("hashchange", () => { readUrl(); render(); });
   document.addEventListener("keydown", onKey);
 }
@@ -87,6 +92,8 @@ function score(skill, words) {
   return total;
 }
 
+// Order: best text match first, then higher quality (0–5 stars, computed by the indexer),
+// then newest, then alphabetical. With an empty search it's simply quality → date → name.
 function matches() {
   const words = state.query.toLowerCase().split(/\s+/).filter(Boolean);
   return state.skills
@@ -94,7 +101,10 @@ function matches() {
     .filter((s) => !state.activeTiers.size || state.activeTiers.has(s.tier))
     .map((s) => [score(s, words) || (words.length ? 0 : 1), s])
     .filter(([sc]) => sc > 0)
-    .sort((a, b) => b[0] - a[0] || a[1].name.localeCompare(b[1].name))
+    .sort((a, b) => b[0] - a[0]
+      || (b[1].quality ?? 0) - (a[1].quality ?? 0)
+      || b[1].updated_at.localeCompare(a[1].updated_at)
+      || a[1].name.localeCompare(b[1].name))
     .map(([, s]) => s);
 }
 
@@ -111,24 +121,29 @@ function render() {
   document.title = state.query ? `🧭 ${state.query} — skills` : "🧭 Skills";
 }
 
-// One result card. Looks like a line of `agc skills list`, but clickable.
+// One result card, built for a 2–4 column grid:
+//   row 1: emoji + name + stars        row 2: description (3 lines max)
+//   row 3: version · lines · date · scripts        source badge
+const stars = (q) => `<span class="stars" title="quality ${q}/5 (version, scripts, recent, size, description)">${"★".repeat(q)}${"☆".repeat(5 - q)}</span>`;
 function card(s, active) {
   const meta = [
     s.version && `<span class="v">v${esc(s.version)}</span>`,
     `<span class="l">${s.lines}L</span>`,
     `<span class="d">${esc(s.updated_at)}</span>`,
-    s.category && `<span class="cat">${esc(s.category)}</span>`,
     s.has_scripts && `<span class="scripts" title="${esc(s.languages.join(", "))}">⚙️ ${esc(s.languages.join(" "))}</span>`,
   ].filter(Boolean).join(" ");
   return `
   <a class="card ${active ? "active" : ""}" data-tier="${s.tier}" href="#/s/${encodeURIComponent(s.id)}">
     <div class="row1">
       <span class="emoji">${s.emoji ?? "📄"}</span>
-      <span class="name">${esc(s.name)}</span>
-      <span class="meta">${meta}</span>
-      <span class="src" data-tier="${s.tier}">${esc(s.source)}</span>
+      <span class="name" title="${esc(s.name)}">${esc(s.name)}</span>
+      ${stars(s.quality ?? 0)}
     </div>
     <p class="desc">${esc(s.description.replace(/^\s*[(\[]?\s*\p{Extended_Pictographic}\uFE0F?\s*[)\]]?\s*/u, ""))}</p>
+    <div class="row3">
+      <span class="meta">${meta}</span>
+      <span class="src" data-tier="${s.tier}" title="${esc(s.category ?? "")}">${esc(s.source)}</span>
+    </div>
   </a>`;
 }
 
@@ -146,6 +161,7 @@ async function renderDetail(s) {
     <p class="lead">${esc(s.description)}</p>
     <dl class="facts">
       <dt>name</dt><dd><code>${esc(s.name)}</code></dd>
+      <dt>quality</dt><dd>${stars(s.quality ?? 0)} <small>${s.quality ?? 0}/5 — version, scripts, recent, size, description</small></dd>
       ${s.version ? `<dt>version</dt><dd>v${esc(s.version)}</dd>` : ""}
       <dt>size</dt><dd>${s.lines} lines · ${(s.size_bytes / 1024).toFixed(1)} KB</dd>
       <dt>updated</dt><dd>${esc(s.updated_at)}</dd>

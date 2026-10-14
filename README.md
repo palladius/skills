@@ -53,6 +53,7 @@ The first three keys are exactly google/skills' format; everything else is addit
 | `version`, `compatibility` | from frontmatter (`version` or `metadata.version`) |
 | `lines`, `size_bytes`, `updated_at` | `SKILL.md` lines/bytes, last git commit date touching the folder |
 | `has_scripts`, `languages` | presence of `scripts/`, languages inferred from file extensions |
+| `quality` | 0–5, one point each for: declared version · bundled scripts · updated in the last 90 days · 40–600 lines · 60–500 char description. Used to rank cards; deliberately dumb and explainable |
 | `source`, `tier`, `path`, `upstream_url`, `content_url`, `install` | provenance + permalinks + a copy-pasteable install line |
 
 ## Private builds

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 — 2026-10-14
+
+- 🐛 Typing in the search box while a skill detail is open now leaves the detail and shows results (you were stuck on the skill).
+- 🧱 Results are a responsive card grid (1–4 columns, `auto-fill minmax(300px)`), 3-line clamped descriptions.
+- ⭐ New `quality` field (0–5) in `index.json`; cards sorted by match → quality → date → name, stars shown on cards and detail.
+
 ## 0.2.0 — 2026-10-12
 
 - 🌐 P1: static site (`site/`): instant search with weighted scoring, agc-style cards, detail view rendering SKILL.md (marked + DOMPurify), source/tier filter chips, keyboard nav (`/`, ↑↓, Enter, Esc), tier colours via `data-tier`, dark mode.
