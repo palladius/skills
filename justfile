@@ -34,3 +34,7 @@ stats:
 serve port="8787":
     @echo "🌍 http://localhost:{{port}}/#/?q=audio"
     ruby -run -e httpd dist -p {{port}}
+
+# Regenerate .claude-plugin/ and .agents/plugins/ marketplace.json from sources.yaml (commit the result)
+marketplace:
+    bin/skills-indexer marketplace --local-root ~/git

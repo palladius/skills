@@ -32,11 +32,20 @@ jobs:
         run: bin/skills-indexer build -o dist -v
       - name: Compat check against upstream google/skills
         run: bin/skills-indexer compat https://raw.githubusercontent.com/google/skills/main/index.json
+      - name: marketplace.json files are up to date
+        run: |
+          bin/skills-indexer marketplace --workdir tmp/sources
+          git diff --exit-code -- .claude-plugin .agents || { echo "::error::run 'just marketplace' and commit"; exit 1; }
+      - name: Verify `npx skills add palladius/skills --list` sees our skills (non-blocking)
+        id: npx
+        continue-on-error: true
+        run: npx -y skills@latest add palladius/skills --list 2>&1 | tee npx.log
       - name: Summary
         run: |
           { echo "### 🧭 skills index"; echo; echo '| skills | tier | source | version |'; echo '|---|---|---|---|';
             jq -r '.sources[] | "| \(.skills_count) | \(.tier) | \(.id) | \(.version // "-") |"' dist/index.json;
-            echo; echo "**Total:** $(jq '.skills|length' dist/index.json) skills"; } >> "$GITHUB_STEP_SUMMARY"
+            echo; echo "**Total:** $(jq '.skills|length' dist/index.json) skills";
+            echo; echo "### npx skills add palladius/skills --list (${{ steps.npx.outcome }})"; echo '```'; tail -20 npx.log 2>/dev/null; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

@@ -1,0 +1,40 @@
+{
+  "name": "palladius-skills",
+  "owner": {
+    "name": "Riccardo Carlesso",
+    "url": "https://github.com/palladius"
+  },
+  "metadata": {
+    "version": "0.4.0",
+    "description": "Riccardo's catalogue of agent skills and Gemini CLI extensions, plus upstream Google skill repos. Browse at https://palladius.github.io/skills"
+  },
+  "plugins": [
+    {
+      "name": "palladius-custom-commands",
+      "source": {
+        "source": "github",
+        "repo": "palladius/gemini-cli-custom-commands",
+        "ref": "main"
+      },
+      "description": "Riccardo's Gemini CLI extension, packaged with GCP and SRE Custom Commands and skills."
+    },
+    {
+      "name": "palladius-public-goodies",
+      "source": {
+        "source": "github",
+        "repo": "palladius/gemini-cli-palladius-public-goodies",
+        "ref": "main"
+      },
+      "description": "(💛) Riccardos public Gemini CLI commands and skills for inspiration. This is more for study than public consumption. Might contain Riccardo-hard-coded facts like I cant code Typescript. Use at your own risk."
+    },
+    {
+      "name": "gemini-skills",
+      "source": {
+        "source": "github",
+        "repo": "google-gemini/gemini-skills",
+        "ref": "main"
+      },
+      "description": "A library of skills for the Gemini API, SDK and model interactions."
+    }
+  ]
+}

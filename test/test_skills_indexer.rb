@@ -154,3 +154,23 @@ class TestWriterAndCompat < Minitest::Test
     assert SkillsIndexer::Compat.compatible?("generator" => "x", "skills" => [{"name" => "a", "description" => "b", "entrypoint" => "https://x/SKILL.md"}])
   end
 end
+
+class TestMarketplace < Minitest::Test
+  def test_only_sources_with_manifest_become_plugins
+    sources = [fixture_source("flat-ext"), fixture_source("nested"),
+      SkillsIndexer::Source.new("id" => "bare", "url" => "https://github.com/acme/bare", "tier" => "public", "path" => FIXTURES.join("flat-ext/skills").to_s).resolve!]
+    names = SkillsIndexer::Marketplace.claude(sources)[:plugins].map { _1[:name] }
+    assert_equal %w[flat-ext nested], names, "bare has no manifest → not a plugin"
+  end
+
+  def test_both_dialects_are_written
+    Dir.mktmpdir do |root|
+      paths = SkillsIndexer::Marketplace.write([fixture_source("flat-ext")], root:)
+      assert_equal [".claude-plugin/marketplace.json", ".agents/plugins/marketplace.json"], paths.map { _1.relative_path_from(Pathname(root)).to_s }
+      claude = JSON.parse(File.read(paths[0])); agents = JSON.parse(File.read(paths[1]))
+      assert_equal({"source" => "github", "repo" => "acme/flat-ext", "ref" => "main"}, claude["plugins"][0]["source"])
+      assert_equal({"source" => "url", "url" => "https://github.com/acme/flat-ext.git", "ref" => "main"}, agents["plugins"][0]["source"])
+      assert_equal "AVAILABLE", agents["plugins"][0]["policy"]["installation"]
+    end
+  end
+end

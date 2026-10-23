@@ -5,6 +5,7 @@ skills-indexer — build a google/skills-compatible index.json from many repos.
 
   bin/skills-indexer build  [-s sources.yaml] [-o dist] [--local-root ~/git] [--workdir tmp/sources] [-n] [-v]
   bin/skills-indexer compat <index.json | https://…/index.json>
+  bin/skills-indexer marketplace [-s sources.yaml] [--local-root ~/git]   # writes .claude-plugin/ + .agents/plugins/ in the repo
   bin/skills-indexer -h
 
 `build` is the default and is SAFE: it only writes under -o (default dist/)
@@ -24,7 +25,7 @@ end
 
 opts = {sources: "sources.yaml", out: "dist", site: File.expand_path("../site", __dir__), workdir: "tmp/sources", local_root: nil, dryrun: false, verbose: false}
 parser = OptionParser.new do |o|
-  o.banner = "Usage: skills-indexer [build|compat FILE_OR_URL] [options]"
+  o.banner = "Usage: skills-indexer [build|compat FILE_OR_URL|marketplace] [options]"
   o.on("-s", "--sources FILE", "sources.yaml (default: #{opts[:sources]})") { opts[:sources] = _1 }
   o.on("-o", "--out DIR", "output dir (default: #{opts[:out]})") { opts[:out] = _1 }
   o.on("--site DIR", "static frontend to copy into --out (default: site/; 'none' to skip)") { opts[:site] = _1 }
@@ -75,6 +76,15 @@ when "compat"
     problems.first(20).each { puts Palette.paint("❌ #{_1}", :red) }
     puts Palette.paint("… #{problems.size - 20} more", :dim) if problems.size > 20
     exit 1
+  end
+when "marketplace"
+  sources = SkillsIndexer::Source.load(opts[:sources])
+  sources.each { _1.resolve!(local_root: opts[:local_root], workdir: opts[:workdir], dryrun: opts[:dryrun], log:) }
+  root = File.expand_path("..", __dir__)
+  if opts[:dryrun]
+    puts JSON.pretty_generate(SkillsIndexer::Marketplace.claude(sources))
+  else
+    SkillsIndexer::Marketplace.write(sources, root:).each { log.(Palette.paint("✅ wrote #{_1.relative_path_from(Pathname(root))}", :green)) }
   end
 else
   abort(parser.help)

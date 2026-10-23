@@ -21,6 +21,7 @@ require_relative "skills_indexer/skill"
 require_relative "skills_indexer/scanner"
 require_relative "skills_indexer/writer"
 require_relative "skills_indexer/compat"
+require_relative "skills_indexer/marketplace"
 
 module SkillsIndexer
   TIERS = %i[public ricc google].freeze

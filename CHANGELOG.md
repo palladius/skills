@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 — 2026-10-23
+
+- 🛒 P3: `bin/skills-indexer marketplace` emits `.claude-plugin/marketplace.json` + `.agents/plugins/marketplace.json` (google/skills format); CI fails if they drift from `sources.yaml`.
+- 🪞 The repo now indexes itself: `skills/find-skills` teaches any agent to search/fetch skills from the catalogue via `index.json`.
+- 🐛 Explicit `path:` in `sources.yaml` is trusted even when it points at this repo (the self-indexing guard now only applies to `--local-root` guesses).
+- CI: non-blocking `npx skills add palladius/skills --list` smoke test, shown in the job summary.
+
 ## 0.3.1 — 2026-10-23
 
 - 🐛 `Skill#description` now falls back to `title` if an upstream `SKILL.md` frontmatter is missing or has an empty `description`, preventing CI compat failures when upstream repos add malformed YAML frontmatter.

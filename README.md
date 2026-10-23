@@ -56,6 +56,17 @@ The first three keys are exactly google/skills' format; everything else is addit
 | `quality` | 0–5, one point each for: declared version · bundled scripts · updated in the last 90 days · 40–600 lines · 60–500 char description. Used to rank cards; deliberately dumb and explainable |
 | `source`, `tier`, `path`, `upstream_url`, `content_url`, `install` | provenance + permalinks + a copy-pasteable install line |
 
+## Install as a marketplace / skill package
+
+The repo ships the same two manifests as `google/skills`, generated from `sources.yaml` (`just marketplace`):
+
+| Harness | Command |
+|---|---|
+| Claude Code | `claude plugin marketplace add palladius/skills` |
+| Codex | `codex plugin marketplace add palladius/skills` |
+| skills.sh | `npx skills add palladius/skills` (installs [`find-skills`](skills/find-skills/SKILL.md), a skill that teaches an agent to query this catalogue) |
+| Gemini CLI | `gemini extensions install <url>` for any `sources[].url` that is an extension |
+
 ## Private builds
 
 Private sources (`tier: ricc` / `tier: google`) live in a `sources.private.yaml` that is **never committed** (see `.gitignore`); the resulting `dist-private/` is deployed separately behind IAP. The public site never sees them.

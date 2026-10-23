@@ -1,0 +1,47 @@
+{
+  "name": "palladius-skills",
+  "plugins": [
+    {
+      "name": "palladius-custom-commands",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/palladius/gemini-cli-custom-commands.git",
+        "ref": "main"
+      },
+      "description": "Riccardo's Gemini CLI extension, packaged with GCP and SRE Custom Commands and skills.",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Skills"
+    },
+    {
+      "name": "palladius-public-goodies",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/palladius/gemini-cli-palladius-public-goodies.git",
+        "ref": "main"
+      },
+      "description": "(💛) Riccardos public Gemini CLI commands and skills for inspiration. This is more for study than public consumption. Might contain Riccardo-hard-coded facts like I cant code Typescript. Use at your own risk.",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Skills"
+    },
+    {
+      "name": "gemini-skills",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/google-gemini/gemini-skills.git",
+        "ref": "main"
+      },
+      "description": "A library of skills for the Gemini API, SDK and model interactions.",
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Skills"
+    }
+  ]
+}

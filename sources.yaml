@@ -4,6 +4,11 @@
 # Keys: id (stable, used in permalinks) · url · tier (public|ricc|google) · ref (default main)
 # Private sources (tier ricc/google) live in a separate, never-committed sources.private.yaml.
 sources:
+  - id: palladius-skills
+    url: https://github.com/palladius/skills
+    tier: public
+    path: .                      # this very repo (skills/find-skills) — CI/other machines fall back to cloning
+
   - id: palladius-custom-commands
     url: https://github.com/palladius/gemini-cli-custom-commands
     tier: public

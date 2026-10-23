@@ -36,14 +36,15 @@ module SkillsIndexer
     PROJECT_ROOT = Pathname(File.expand_path("../..", __dir__))
 
     def resolve!(local_root: nil, workdir: "tmp/sources", dryrun: false, log: ->(_) {})
-      candidates = []
-      candidates << File.expand_path(@path) if @path
-      if local_root
+      # An explicit `path:` is trusted as-is (even if it's this very repo: we do index ourselves).
+      explicit = @path && Pathname(File.expand_path(@path, PROJECT_ROOT))
+      @dir = explicit if explicit&.directory?
+      if @dir.nil? && local_root
         root = File.expand_path(local_root)
-        candidates << File.join(root, "#{owner}-#{repo_name}") if owner
-        candidates << File.join(root, repo_name)
+        guesses = [owner && File.join(root, "#{owner}-#{repo_name}"), File.join(root, repo_name)].compact
+        # Guesses must never resolve to the project itself (google/skills vs palladius/skills!).
+        @dir = guesses.map { Pathname(_1) }.find { _1.directory? && _1.realpath != PROJECT_ROOT.realpath }
       end
-      @dir = candidates.map { Pathname(_1) }.find { _1.directory? && _1.realpath != PROJECT_ROOT }
       @dir ||= clone_into(Pathname(workdir).join(id), dryrun:, log:)
       self
     end
