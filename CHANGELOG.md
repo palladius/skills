@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1 — 2026-10-23
+
+- 🐛 `Skill#description` now falls back to `title` if an upstream `SKILL.md` frontmatter is missing or has an empty `description`, preventing CI compat failures when upstream repos add malformed YAML frontmatter.
+- 🎲 Indexed `gws-readonly-usage` and `presentation-that-riccardo-likes` from `palladius-public-goodies` for DevFest Prague 2026 ("Steal My Skill").
+
 ## 0.3.0 — 2026-10-14
 
 - 🐛 Typing in the search box while a skill detail is open now leaves the detail and shows results (you were stuck on the skill).

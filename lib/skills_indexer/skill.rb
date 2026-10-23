@@ -35,7 +35,7 @@ module SkillsIndexer
 
     # --- compat core (google/skills) -----------------------------------------
     def name = (meta["name"] || dir.basename.to_s).to_s.strip
-    def description = meta["description"].to_s.strip
+    def description = meta["description"].to_s.strip.then { _1.empty? ? title : _1 }
     def entrypoint = source.raw_url(rel_path)
 
     # --- extras -----------------------------------------------------------------
