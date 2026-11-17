@@ -1,0 +1,9 @@
+# gcloud run deploy --source: upload ONLY what the Dockerfile needs.
+# (Without this file gcloud falls back to .gitignore, which excludes dist-private/.)
+*
+!dist-private/
+!dist-private/**
+!deploy/
+!deploy/**
+!Dockerfile
+!.dockerignore
