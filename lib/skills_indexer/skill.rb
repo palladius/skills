@@ -20,13 +20,14 @@ module SkillsIndexer
     }.freeze
     IGNORED_PLUGIN_SEGMENTS = %w[plugins skills].freeze
 
-    attr_reader :source, :dir, :rel_path, :meta, :body
+    attr_reader :source, :dir, :rel_path, :meta, :body, :raw
 
     def initialize(source:, skill_md:)
       @source = source
       @dir = skill_md.dirname
       @rel_path = skill_md.relative_path_from(source.dir).to_s
       content = skill_md.read
+      @raw = content
       @meta = parse_frontmatter(content)
       @body = content.sub(FRONTMATTER, "")
       @lines = content.lines.count

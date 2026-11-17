@@ -65,6 +65,45 @@ class TestScanner < Minitest::Test
     ids = SkillsIndexer::Scanner.new(fixture_source("nested")).skills.map(&:id)
     assert_equal %w[nested/plug/gamma nested/gamma], ids
   end
+
+  # --- AIR-GAP: skills excluded by name or content never reach the index ---------------
+  def test_exclude_skills_by_name
+    src = fixture_source("flat-ext", "exclude_skills" => ["alpha"])
+    assert_equal %w[beta], SkillsIndexer::Scanner.new(src).skills.map(&:name)
+    assert_equal %w[alpha], src.excluded
+  end
+
+  def test_exclude_skills_by_content_regex_is_case_insensitive
+    src = fixture_source("flat-ext", "exclude_content_regex" => "ALPHA DOES")
+    assert_equal %w[beta], SkillsIndexer::Scanner.new(src).skills.map(&:name)
+    assert_equal %w[alpha], src.excluded
+  end
+
+  def test_excluded_names_never_serialised_only_count
+    src = fixture_source("flat-ext", "exclude_skills" => ["alpha"])
+    SkillsIndexer::Scanner.new(src).skills
+    h = src.to_h(skills_count: 1)
+    assert_equal 1, h[:excluded_count]
+    refute_match(/alpha/, JSON.generate(h))
+  end
+
+  def test_optional_missing_source_is_skipped_not_cloned
+    src = SkillsIndexer::Source.new("id" => "ghost", "url" => "https://github.com/acme/ghost", "tier" => "palladius",
+      "path" => "/nonexistent/ghost", "optional" => true).resolve!
+    refute src.available?
+    assert_empty SkillsIndexer::Scanner.new(src).skills
+  end
+
+  def test_load_merges_multiple_files_later_wins
+    Dir.mktmpdir do |d|
+      File.write("#{d}/a.yaml", {"sources" => [{"id" => "x", "url" => "https://github.com/a/x", "tier" => "public"}, {"id" => "y", "url" => "https://github.com/a/y"}]}.to_yaml)
+      File.write("#{d}/b.yaml", {"sources" => [{"id" => "x", "url" => "https://github.com/a/x", "tier" => "palladius", "exclude_skills" => ["s"]}]}.to_yaml)
+      srcs = SkillsIndexer::Source.load("#{d}/a.yaml", "#{d}/b.yaml")
+      assert_equal %w[x y], srcs.map(&:id)
+      assert_equal :palladius, srcs[0].tier
+      assert_equal ["s"], srcs[0].exclude_skills
+    end
+  end
 end
 
 class TestSkill < Minitest::Test

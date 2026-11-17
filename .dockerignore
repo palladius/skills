@@ -1,0 +1,5 @@
+# Only dist-private/ + deploy/ reach the Cloud Run build. Nothing else (no sources, no tests, no clones).
+*
+!dist-private/
+!deploy/
+!Dockerfile

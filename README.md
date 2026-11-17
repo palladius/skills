@@ -34,7 +34,7 @@ Append to [`sources.yaml`](sources.yaml):
 ```yaml
   - id: my-skills                       # stable; used in permalinks
     url: https://github.com/me/my-skills
-    tier: public                        # public | ricc | google (drives the CSS colour)
+    tier: public                        # public | palladius | google (drives the CSS colour)
     # ref: main                         # optional
     # path: ~/git/my-skills             # optional local checkout
 ```
@@ -69,7 +69,7 @@ The repo ships the same two manifests as `google/skills`, generated from `source
 
 ## Private builds
 
-Private sources (`tier: ricc` / `tier: google`) live in a `sources.private.yaml` that is **never committed** (see `.gitignore`); the resulting `dist-private/` is deployed separately behind IAP. The public site never sees them.
+Private sources (`tier: palladius` / `tier: google`) live in a `sources.private.yaml` that is **never committed** (see `.gitignore`); the resulting `dist-private/` is deployed separately behind IAP. The public site never sees them.
 
 ## License
 

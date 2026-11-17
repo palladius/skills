@@ -24,7 +24,7 @@ require_relative "skills_indexer/compat"
 require_relative "skills_indexer/marketplace"
 
 module SkillsIndexer
-  TIERS = %i[public ricc google].freeze
+  TIERS = %i[public palladius google].freeze
 
   # The three keys every entry MUST have to be readable by google/skills consumers.
   COMPAT_KEYS = %w[name description entrypoint].freeze

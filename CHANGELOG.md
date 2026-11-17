@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0 — 2026-11-17
+
+- 🔱 P4: three-tier privacy model (public ⚪ / palladius 💛 / google 🔵) as a V, not a chain. Tier `ricc` renamed to `palladius`.
+- 🚧 Air-gap rules per source: `exclude_skills` + `exclude_content_regex` drop skills before indexing; only `excluded_count` is serialised.
+- 🧩 `-s` is repeatable; later files override same ids; relative `path:` resolves against the yaml; `optional: true` skips missing local sources instead of cloning.
+- 🐳 Tier B: `Dockerfile` + nginx Basic Auth (fails closed without `BASIC_AUTH_PASS`), `just build-b` / `just deploy-b` (Cloud Run scale-to-zero). `.dockerignore` admits only `dist-private/` + `deploy/`.
+- 🗄️ Tier C: `just build-c` + `just publish-dir` (FUSE-safe cp + 0755/0644).
+- 🔗 Scanner uses explicit-depth globs so symlinked skill folders are followed (`**` never was).
+- 🛡️ Site hardening for `Origin: null` sandboxes: `index.js` inline data (fetch fallback), `history.replaceState` in try/catch, marked + DOMPurify vendored (`just vendor`) with CDN fallback.
+
 ## 0.4.0 — 2026-10-23
 
 - 🛒 P3: `bin/skills-indexer marketplace` emits `.claude-plugin/marketplace.json` + `.agents/plugins/marketplace.json` (google/skills format); CI fails if they drift from `sources.yaml`.

@@ -3,7 +3,7 @@
 =begin
 skills-indexer — build a google/skills-compatible index.json from many repos.
 
-  bin/skills-indexer build  [-s sources.yaml] [-o dist] [--local-root ~/git] [--workdir tmp/sources] [-n] [-v]
+  bin/skills-indexer build  [-s sources.yaml [-s more.yaml]] [-o dist] [--local-root ~/git] [--workdir tmp/sources] [-n] [-v]
   bin/skills-indexer compat <index.json | https://…/index.json>
   bin/skills-indexer marketplace [-s sources.yaml] [--local-root ~/git]   # writes .claude-plugin/ + .agents/plugins/ in the repo
   bin/skills-indexer -h
@@ -23,10 +23,10 @@ module Palette
   end
 end
 
-opts = {sources: "sources.yaml", out: "dist", site: File.expand_path("../site", __dir__), workdir: "tmp/sources", local_root: nil, dryrun: false, verbose: false}
+opts = {sources: [], out: "dist", site: File.expand_path("../site", __dir__), workdir: "tmp/sources", local_root: nil, dryrun: false, verbose: false}
 parser = OptionParser.new do |o|
   o.banner = "Usage: skills-indexer [build|compat FILE_OR_URL|marketplace] [options]"
-  o.on("-s", "--sources FILE", "sources.yaml (default: #{opts[:sources]})") { opts[:sources] = _1 }
+  o.on("-s", "--sources FILE", "sources yaml; repeatable, later files override same ids (default: sources.yaml)") { opts[:sources] << _1 }
   o.on("-o", "--out DIR", "output dir (default: #{opts[:out]})") { opts[:out] = _1 }
   o.on("--site DIR", "static frontend to copy into --out (default: site/; 'none' to skip)") { opts[:site] = _1 }
   o.on("--local-root DIR", "prefer DIR/<repo-name> checkouts over cloning (e.g. ~/git)") { opts[:local_root] = _1 }
@@ -38,19 +38,21 @@ parser = OptionParser.new do |o|
 end
 args = parser.parse!(ARGV)
 command = args.shift || "build"
+opts[:sources] = ["sources.yaml"] if opts[:sources].empty?
 log = ->(msg) { warn msg }
 dbg = ->(msg) { warn Palette.paint(msg, :dim) if opts[:verbose] }
 
 case command
 when "build"
   sources = SkillsIndexer::Source.load(opts[:sources])
-  log.(Palette.paint("✨ skills-indexer #{SkillsIndexer::VERSION} — #{sources.size} sources from #{opts[:sources]}", :bold))
+  log.(Palette.paint("✨ skills-indexer #{SkillsIndexer::VERSION} — #{sources.size} sources from #{opts[:sources].join(" + ")}", :bold))
   skills = sources.flat_map do |src|
     src.resolve!(local_root: opts[:local_root], workdir: opts[:workdir], dryrun: opts[:dryrun], log:)
-    next [] if opts[:dryrun] && !src.dir&.directory?
+    next [] unless src.available?
     found = SkillsIndexer::Scanner.new(src).skills
-    tier = Palette.paint(src.tier, {public: :green, ricc: :yellow, google: :blue}[src.tier])
-    log.("  📁 #{Palette.paint(src.id, :cyan)} [#{tier}] #{found.size} skills  #{Palette.paint(src.dir, :dim)}")
+    tier = Palette.paint(src.tier, {public: :green, palladius: :yellow, google: :blue}[src.tier])
+    gap = src.excluded.empty? ? "" : Palette.paint("  🚧 air-gap excluded #{src.excluded.size}: #{src.excluded.join(", ")}", :magenta)
+    log.("  📁 #{Palette.paint(src.id, :cyan)} [#{tier}] #{found.size} skills  #{Palette.paint(src.dir, :dim)}#{gap}")
     found.each { dbg.("     🔗 #{_1.id} #{_1.lines}L #{_1.version ? "v#{_1.version}" : ""} #{_1.updated_at}") }
     found
   end

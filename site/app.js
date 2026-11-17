@@ -26,12 +26,12 @@ const state = {
 // Short helpers so the code below reads like English.
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
-const TIER_LABEL = {public: "public", ricc: "💛 ricc", google: "🔵 google"};
+const TIER_LABEL = {public: "public", palladius: "💛 palladius", google: "🔵 google"};
 
 // ---- 2. Boot: download the index, then listen for typing and URL changes -----
 async function boot() {
-  const res = await fetch("index.json", {cache: "no-cache"});
-  const index = await res.json();
+  // Prefer the inline copy (index.js, see index.html); fall back to fetching index.json.
+  const index = window.__SKILLS_INDEX__ ?? await (await fetch("index.json", {cache: "no-cache"})).json();
   state.skills = index.skills;
   state.sources = index.sources;
   $("#generated").textContent = `generated ${index.generated_at?.slice(0, 16).replace("T", " ")} UTC`;
@@ -72,7 +72,9 @@ function writeUrl() {
   if (state.activeTiers.size) p.set("tier", [...state.activeTiers].join(","));
   const next = p.toString() ? `#/?${p}` : "#/";
   // replaceState = don't spam the browser history with every keystroke.
-  history.replaceState(null, "", next);
+  // Some intranet hosts serve pages in an `Origin: null` sandbox where this throws a
+  // SecurityError — so we try, and if it fails we just set the hash (slightly noisier history).
+  try { history.replaceState(null, "", next); } catch { if (location.hash !== next) location.hash = next; }
 }
 
 // ---- 4. Search: which skills match, and in what order? ---------------------------

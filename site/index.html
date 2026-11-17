@@ -35,9 +35,14 @@
   <a href="https://github.com/palladius/skills">palladius/skills</a>
 </footer>
 
-<!-- Markdown → HTML, and a sanitizer so a SKILL.md can't inject scripts into this page. -->
-<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+<!-- Markdown → HTML, and a sanitizer so a SKILL.md can't inject scripts into this page.
+     Served from vendor/ (run `just vendor` once) so the bundle works on locked-down intranets;
+     if vendor/ is missing we fall back to the CDN. -->
+<script src="vendor/marked.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/marked@12/marked.min.js'"></script>
+<script src="vendor/purify.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js'"></script>
+<!-- index.js defines window.__SKILLS_INDEX__ — a copy of index.json for hosts where fetch() of a
+     sibling file is blocked (Origin: null sandboxes). If it fails to load, app.js falls back to fetch. -->
+<script src="index.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

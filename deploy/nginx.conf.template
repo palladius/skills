@@ -1,0 +1,22 @@
+# nginx config for tier B. Env vars are substituted by the official image's entrypoint
+# (envsubst on /etc/nginx/templates/*.template). Everything — including index.json and the
+# SKILL.md copies under content/ — sits behind Basic Auth; there is no anonymous path.
+server {
+    listen       ${PORT};
+    server_name  _;
+    root         /usr/share/nginx/html;
+    index        index.html;
+
+    auth_basic           "skills (private)";
+    auth_basic_user_file /etc/nginx/.htpasswd;
+
+    # Health check for Cloud Run (still authenticated: a 401 is a healthy answer too).
+    location = /healthz { return 200 "ok\n"; add_header Content-Type text/plain; }
+
+    location / { try_files $uri $uri/ =404; }
+
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript text/markdown;
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    add_header Cache-Control "private, no-store" always;
+}

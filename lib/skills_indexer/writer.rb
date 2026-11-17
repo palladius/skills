@@ -2,6 +2,7 @@
 Writer — serialises the index and copies every SKILL.md next to it.
 
   <out>/index.json
+  <out>/index.js                     # same data, as window.__SKILLS_INDEX__ (for fetch-less hosts)
   <out>/content/<skill id>.md        # id contains slashes → nested folders
 =end
 
@@ -19,6 +20,9 @@ module SkillsIndexer
       }
       FileUtils.mkdir_p(@out)
       @out.join("index.json").write(JSON.pretty_generate(index) + "\n")
+      # Same data as a script: lets the site boot where fetch() of a sibling file is blocked
+      # (e.g. hosts that serve pages in an `Origin: null` sandbox).
+      @out.join("index.js").write("window.__SKILLS_INDEX__ = #{JSON.generate(index)};\n")
       skills.each do |s|
         dest = @out.join("content", "#{s.id}.md")
         FileUtils.mkdir_p(dest.dirname)

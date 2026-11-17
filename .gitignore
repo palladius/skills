@@ -1,10 +1,11 @@
-# generated
 dist/
+dist-corp/
 dist-private/
-tmp/
-# private build inputs — NEVER commit
-sources.private.yaml
-*.private.yaml
-# misc
 .DS_Store
+# generated
 *.log
+# misc
+# private build inputs — NEVER commit
+*.private.yaml
+sources.private.yaml
+tmp/
