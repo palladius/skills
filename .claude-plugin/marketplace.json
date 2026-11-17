@@ -5,7 +5,7 @@
     "url": "https://github.com/palladius"
   },
   "metadata": {
-    "version": "0.4.0",
+    "version": "0.5.0",
     "description": "Riccardo's catalogue of agent skills and Gemini CLI extensions, plus upstream Google skill repos. Browse at https://palladius.github.io/skills"
   },
   "plugins": [
