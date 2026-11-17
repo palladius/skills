@@ -8,5 +8,5 @@ if [ -z "${BASIC_AUTH_PASS:-}" ]; then
   exit 1
 fi
 htpasswd -cbB /etc/nginx/.htpasswd "$BASIC_AUTH_USER" "$BASIC_AUTH_PASS"
-chmod 640 /etc/nginx/.htpasswd
+chmod 644 /etc/nginx/.htpasswd   # workers run as "nginx", must be able to read it (bcrypt hashes, not secrets)
 echo "htpasswd ready for user '$BASIC_AUTH_USER'"
