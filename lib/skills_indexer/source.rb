@@ -10,6 +10,7 @@ Source — one entry of sources.yaml: a git repo that contains skills.
     web_base: https://host/.../repo           # optional, for non-GitHub hosts (Gitiles)
     exclude_skills: [foo, bar]                # optional AIR-GAP: never index these skill names
     exclude_content_regex: "secret|internal"  # optional AIR-GAP: skip any SKILL.md matching this
+    warn_content_regex: "fixme|draft_only"  # optional AIR-GAP: warn without dropping skill
 
 Resolution order for the working directory:
   1. explicit `path:`      2. <local_root>/<owner>-<repo> or <local_root>/<repo>      3. blobless clone into <workdir>/<id>
@@ -17,8 +18,8 @@ Resolution order for the working directory:
 
 module SkillsIndexer
   class Source
-    attr_reader :id, :url, :tier, :ref, :web_base, :exclude_skills, :exclude_content_regex, :optional
-    attr_accessor :dir, :excluded
+    attr_reader :id, :url, :tier, :ref, :web_base, :exclude_skills, :exclude_content_regex, :warn_content_regex, :optional
+    attr_accessor :dir, :excluded, :warned
 
     def initialize(h)
       @id = h.fetch("id")
@@ -30,7 +31,9 @@ module SkillsIndexer
       @optional = !!h["optional"]
       @exclude_skills = Array(h["exclude_skills"]).map(&:to_s)
       @exclude_content_regex = h["exclude_content_regex"] && Regexp.new(h["exclude_content_regex"], Regexp::IGNORECASE)
+      @warn_content_regex = h["warn_content_regex"] && Regexp.new(h["warn_content_regex"], Regexp::IGNORECASE)
       @excluded = []   # skill names dropped by the air-gap rules (logged, never serialised)
+      @warned = []     # skill names triggering soft warnings (logged, never serialised)
       raise ArgumentError, "#{id}: tier must be one of #{TIERS}" unless TIERS.include?(@tier)
     end
 
@@ -75,6 +78,12 @@ module SkillsIndexer
     # Air-gap rule: true when this skill must NOT be indexed for this build.
     def excluded?(name:, content:)
       exclude_skills.include?(name) || (exclude_content_regex && content.match?(exclude_content_regex)) || false
+    end
+
+    # Soft air-gap warning matches (e.g. internal draft/shortlink tokens): logged, NOT dropped.
+    def warn_matches(content:)
+      return [] unless warn_content_regex
+      content.scan(warn_content_regex).flatten.uniq
     end
 
     def owner = github_slug&.split("/")&.first

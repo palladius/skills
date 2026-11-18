@@ -52,7 +52,8 @@ when "build"
     found = SkillsIndexer::Scanner.new(src).skills
     tier = Palette.paint(src.tier, {public: :green, palladius: :yellow, google: :blue}[src.tier])
     gap = src.excluded.empty? ? "" : Palette.paint("  🚧 air-gap excluded #{src.excluded.size}: #{src.excluded.join(", ")}", :magenta)
-    log.("  📁 #{Palette.paint(src.id, :cyan)} [#{tier}] #{found.size} skills  #{Palette.paint(src.dir, :dim)}#{gap}")
+    warn_gap = src.warned.empty? ? "" : Palette.paint("  ⚠️  air-gap warn #{src.warned.size}: #{src.warned.join(", ")}", :yellow)
+    log.("  📁 #{Palette.paint(src.id, :cyan)} [#{tier}] #{found.size} skills  #{Palette.paint(src.dir, :dim)}#{gap}#{warn_gap}")
     found.each { dbg.("     🔗 #{_1.id} #{_1.lines}L #{_1.version ? "v#{_1.version}" : ""} #{_1.updated_at}") }
     found
   end

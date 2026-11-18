@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.1 — 2026-11-18
+
+- ⚠️ Air-gap `warn_content_regex` support per source (`SkillsIndexer::Source#warn_matches`, `Scanner`, `bin/skills-indexer`): logs soft warnings during builds without excluding matching skills.
+
 ## 0.5.0 — 2026-11-17
 
 - 🔱 P4: three-tier privacy model (public ⚪ / palladius 💛 / google 🔵) as a V, not a chain. Tier `ricc` renamed to `palladius`.

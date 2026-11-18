@@ -29,6 +29,8 @@ module SkillsIndexer
           @source.excluded << skill.name
           next
         end
+        matches = @source.warn_matches(content: skill.raw)
+        @source.warned << "#{skill.name} (#{matches.first(3).join(', ')})" unless matches.empty?
         skill
       end
     end

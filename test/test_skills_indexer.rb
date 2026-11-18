@@ -79,6 +79,15 @@ class TestScanner < Minitest::Test
     assert_equal %w[alpha], src.excluded
   end
 
+  def test_warn_content_regex_logs_warning_without_excluding
+    src = fixture_source("flat-ext", "warn_content_regex" => "BETA HAS NO")
+    skills = SkillsIndexer::Scanner.new(src).skills
+    assert_equal %w[alpha beta], skills.map(&:name)
+    assert_empty src.excluded
+    assert_equal 1, src.warned.size
+    assert_match(/beta/, src.warned.first)
+  end
+
   def test_excluded_names_never_serialised_only_count
     src = fixture_source("flat-ext", "exclude_skills" => ["alpha"])
     SkillsIndexer::Scanner.new(src).skills
