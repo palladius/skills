@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.2 — 2026-11-23
+
+- 🔒 Upgrade Tier B container base image from `nginx:1.27-alpine` to `nginx:alpine` (Alpine 3.24+, `brotli-libs` 1.2.1+, `libssl3`/`libcrypto3` 3.5.9+) with `apk upgrade --no-cache` to remediate brotli and OpenSSL CVEs.
+
 ## 0.5.1 — 2026-11-18
 
 - ⚠️ Air-gap `warn_content_regex` support per source (`SkillsIndexer::Source#warn_matches`, `Scanner`, `bin/skills-indexer`): logs soft warnings during builds without excluding matching skills.
